@@ -1,0 +1,10 @@
+LICENSE.txt
+README.md
+setup.py
+snaggr/__init__.py
+snaggr/snaggr.py
+snaggr.egg-info/PKG-INFO
+snaggr.egg-info/SOURCES.txt
+snaggr.egg-info/dependency_links.txt
+snaggr.egg-info/requires.txt
+snaggr.egg-info/top_level.txt

@@ -1,0 +1,17 @@
+Metadata-Version: 2.1
+Name: snaggr
+Version: 0.12
+Summary: A package for scraping hotel reviews from google, which uses selenium as its backbone.
+Home-page: https://github.com/Starblastr/snaggr
+Author: Deon Posey
+Author-email: deonposey@gmail.com
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.6
+License-File: LICENSE.txt
+Requires-Dist: numpy
+Requires-Dist: scikit-learn
+Requires-Dist: selenium
+Requires-Dist: beautifulsoup4
+Requires-Dist: pandas
