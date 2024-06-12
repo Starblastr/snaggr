@@ -2,7 +2,7 @@
 
 ## About `snaggr`
 
-Hello! Thank you for installing the `snaggr` package. `snaggr` (Snag Google Reviews) is developed by Deon Posey and is designed for Python programmers and data scientists with some experience in Selenium, as it heavily relies on classes and methods from the Selenium package. However, `snaggr` abstracts most of the underlying code, simplifying the process of automating and scraping Google review pages for any given hotel.
+Hello! Thank you for installing the `snaggr` package. `snaggr` (Snag Google Reviews) is a Python package developed by Deon Posey and is designed for Python programmers and data scientists with some experience in Selenium, as it heavily relies on classes and methods from the Selenium package. However, `snaggr` abstracts most of the underlying code, simplifying the process of automating and scraping Google review pages for any given hotel.
 
 Currently, this version of `snaggr` is specifically tailored to scrape Google review pages for hotels. While Google provides reviews for various types of businesses, each category has a different HTML layout and page structure. Expanding `snaggr` to handle other business types, such as restaurants, is planned for future versions. For now, this package enables you to easily gather data for natural language processing, sentiment analysis, or any other analysis you wish to perform with the acquired data, without the concern of being IP banned.
 
