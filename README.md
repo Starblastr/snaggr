@@ -8,7 +8,6 @@ Currently, this version of `snaggr` is specifically tailored to scrape Google re
 
 ## Installation
 
-```sh```
 pip install snaggr
 
 ## Usage
