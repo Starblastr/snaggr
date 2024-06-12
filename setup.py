@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='snaggr',
-    version='0.12',
+    version='0.15',
     packages=find_packages(),
     install_requires=[
         'numpy',

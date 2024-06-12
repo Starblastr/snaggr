@@ -15,6 +15,9 @@ import pandas as pd
 import numpy as np
 from fractions import Fraction
 
+
+# The Snaggr class will contain all the methods that are utilized to automate the webdriver browser.
+
 class Snaggr:
     def __init__(self):
         self.ratings = None
@@ -130,7 +133,7 @@ class Snaggr:
             )
             print('Found elements with placeholder text')
         except:
-            print("Webpage preprcessing complete. Proceeding to scrape review text data...")
+            print("Webpage preprocessing complete. Proceeding to scrape review text data...")
 
 
     def get_review_text(self, driver):
@@ -226,21 +229,67 @@ class Snaggr:
             review = re.sub(r"\\'", "'", review)
             cleaned_reviews.append(review)
         return cleaned_reviews
-
+#                   <------End of Snaggr class----->
     
-def collect_multiple_hotels_google_reviews(urls, options, service, dataset=None):
-    threads = []
-    for google_review_url in urls:
-        thread = threading.Thread(target=collect_hotel_google_reviews, args=(google_review_url, options, service, dataset))
-        threads.append(thread)
-        thread.start()
+    
+    
+    
+# Convert string fractions to floats
+def convert_to_float(x):
+    try:
+        return float(Fraction(x))
+    # Handle cases where x is not a valid fraction
+    except ValueError:
+        parts = x.split('/')
+        if len(parts) == 2 and all(part.isdigit() for part in parts):
+            numerator, denominator = map(float, parts)
+            return numerator / denominator
+        else:
+            return float('nan')
 
-    for thread in threads:
-        thread.join()
+
+
+
+# Function to determine sentiment based on rating
+def determine_sentiment(rating):
+    if rating <= 0.5:
+        return 'Bad'
+    elif rating == 0.6:
+        return 'Neutral'
+    else:
+        return 'Good'
+
+""""Snaggr's clean_priceline_reviews method parses and removes the 'positive-sided priceline review' from priceline reviews in order to avoid mislabeled data, 
+as priceline reviews feature a 'negative-sided' review and a 'positive-sided' review. Basically, it is 2 reviews in 1, 
+and the current algorithm implemented in selenium scrapes them as seperate reviews; the elements with the '+' and '-' symbols
+are used to indicate the positive & negative side of the priceline review respectively and are also collected as seperate 
+reviews by Snaggr's get_review_text method. This is why the clean_priceline_reviews method exist.
+
+combine_priceline_reviews is a function that concatenates those positive sided priceline reviews back onto the negative sided
+one. The function is an imperfect process and may raise an IndexError. This issue is awaiting further investigation"""    
+
+def combine_priceline_reviews(df, positive_priceline_reviews):
+    n=0
+    for rating in df['ratings']:
+        # Pricline reviews are fractions that are tenths instead of fifths, this is exploited to re-append the positive notes that were stripped back onto the priceline reviews
+        if '10' in rating.split('/') and n <=len(positive_priceline_reviews):
+            df.iloc[n]['reviews'] = df.iloc[n]['reviews'] + ' ' + positive_priceline_reviews[n]
+        n+=1
+    
+    return df
+
+def clean_translated_reviews(df):
+    df['reviews'] = df['reviews'].str.replace(r'\s*\(Translated by Google\)', '', regex=True)
+    df['reviews'] = df['reviews'].str.replace(r'\s*\(Original\)', '', regex=True)
+    return df
+
+def remove_translated_reviews(df):
+    df = df[~df['reviews'].str.contains('Translated by Google')]
+    return df
+
 
 counter = 0
 counter_lock = threading.Lock()
-
 def increment_counter():
     global counter
     with counter_lock:
@@ -248,18 +297,18 @@ def increment_counter():
         local_counter += 1
         time.sleep(0.1)
         counter = local_counter
-    
-def collect_hotel_google_reviews(google_review_url, options, service, scroll_time = 180, dataset = None,):
+#                   <------collect_hotel_google_reviews is a function that creates a Snaggr object and calls its methods------->    
+def collect_hotel_google_reviews(google_review_url, options, service, max_scroll_time=360, dataset = None,):
     # control the flow of reading and writing to the file by the threads using the increment_counter function
     increment_counter()
     driver = webdriver.Chrome(options=options, service=service)
-    
+    max_scroll_time = max_scroll_time
     driver.get(google_review_url)
     page_engine = Snaggr()
     
     # Scroll down to the end of the page
-    print(f'URL successfully located, scrolling down webpage for a maximum of {scroll_time} seconds...') 
-    page_engine.scroll_using_keys(driver, scroll_time)
+    print(f'URL successfully located, scrolling down webpage for a maximum of {max_scroll_time} seconds...') 
+    page_engine.scroll_using_keys(driver, max_scroll_time)
     
     # Inject placeholders to empty divs so they are not skipped
     print('Scrolling phase complete. Injecting placeholder text into empty review fields...')
@@ -295,8 +344,14 @@ def collect_hotel_google_reviews(google_review_url, options, service, scroll_tim
     df = pd.DataFrame({'reviews':reviews,
                  'ratings':ratings[:len(reviews)]})
     
-    df = combine_priceline_reviews(df, positive_priceline_reviews)
-    print('Dataframe successfully built.')
+    try:
+        df = combine_priceline_reviews(df, positive_priceline_reviews)
+        print('Dataframe successfully built.')
+    except IndexError as e:
+        print(f"""Failed to concatenate negative & positive priceline reviews for {google_review_url}. 
+        This data will be excluded from snaggr_file.csv.""")
+    
+    
     
                            # <----Process Dataframe---->
     # Create a grade column from the ratings column. the ratings are in the form of fracions so we convert them to floats using the function 'convert_to_float' which handles string inputs that are structured as fractional values    
@@ -305,7 +360,7 @@ def collect_hotel_google_reviews(google_review_url, options, service, scroll_tim
     df['sentiment'] = df['grade'].apply(determine_sentiment)
     
     # Remove unwanted text from the reviews which were translated by google
-    df = clean_translated_reviews(df)
+    df = remove_translated_reviews(df)
     
     # Filter out the reviews which had no text and that we injected 'No comment.' in as a placeholder, they have no value for the model
     df = df[df['reviews'] != 'No comment.']
@@ -336,46 +391,19 @@ def collect_hotel_google_reviews(google_review_url, options, service, scroll_tim
         df = pd.concat([reviews,df])
         df.to_csv(dataset)
     
-    return df
-
-
-
-# Convert string fractions to floats
-def convert_to_float(x):
-    try:
-        return float(Fraction(x))
-    # Handle cases where x is not a valid fraction
-    except ValueError:
-        parts = x.split('/')
-        if len(parts) == 2 and all(part.isdigit() for part in parts):
-            numerator, denominator = map(float, parts)
-            return numerator / denominator
-        else:
-            return float('nan')
-
-
-
-
-# Function to determine sentiment based on rating
-def determine_sentiment(rating):
-    if rating <= 0.5:
-        return 'Bad'
-    elif rating == 0.6:
-        return 'Neutral'
-    else:
-        return 'Good'
-
-def combine_priceline_reviews(df, positive_priceline_reviews):
-    n=0
-    for rating in df['ratings']:
-        # Pricline reviews are fractions that are tenths instead of fifths, this is exploited to re-append the positive notes that were stripped back onto the priceline reviews
-        if '10' in rating.split('/') and n <=len(positive_priceline_reviews):
-            df.iloc[n]['reviews'] = df.iloc[n]['reviews'] + ' ' + positive_priceline_reviews[n]
-        n+=1
     
     return df
 
-def clean_translated_reviews(df):
-    df['reviews'] = df['reviews'].str.replace(r'\s*\(Translated by Google\)', '', regex=True)
-    df['reviews'] = df['reviews'].str.replace(r'\s*\(Original\)', '', regex=True)
-    return df
+
+def collect_multiple_hotels_google_reviews(urls, options, service, max_scroll_time=360, dataset=None):
+    threads = []
+    for i, google_review_url in enumerate(urls):
+        thread = threading.Thread(target=collect_hotel_google_reviews, args=(google_review_url, options, service, max_scroll_time, dataset))
+        threads.append(thread)
+        t = time.localtime()
+        current_time = time.strftime("%H:%M:%S", t)
+        print(f'Thread: {i};\n URL {i}: {google_review_url};\n Started at {current_time}')
+        thread.start()
+
+    for thread in threads:
+        thread.join()
