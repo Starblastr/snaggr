@@ -56,5 +56,5 @@ The code above will:
 - Snag all the reviews and their associated ratings.
 - Export the data into a CSV file with appropriate sentiment labels and 'grades' which the sentiment label was last derived from.
 
-This version removes the reviews that were translated by Google, as they can be mistranslated and have a negative impact on NLP models. In future versions, this will be optional.
+-This version removes the reviews that were translated by Google, as they can be mistranslated and have a negative impact on NLP models. In future versions, this will be optional.
 
