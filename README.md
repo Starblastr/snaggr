@@ -21,7 +21,7 @@ This version of `snaggr` includes two useful functions for scraping google revie
 
 This function takes the following parameters:
 
--  google_review_url`: The URL of the Google review page.
+-  `google_review_url`: The URL of the Google review page.
 - `options`: An `Options` object imported from `selenium.webdriver.chrome.options`.
 - `service`: The location of your web driver's binary executable.
 - `max_scroll_time`: An optional argument (default value is 360 seconds) that determines how long `snaggr` should scroll down the webpage.
