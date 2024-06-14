@@ -7,7 +7,7 @@ pip install snaggr
 
 
 ### Usage:
-This version of snaggr includes two useful functions for scraping google reviews:
+There are two main functions included in snaggr:
 1. collect_hotel_google_reviews(google_review_url, options, service, max_scroll_time=360, dataset = None,)
 2. collect_multiple_hotels_google_reviews(urls5, options, service, max_scroll_time=360, dataset= None)
 
@@ -22,11 +22,11 @@ collect_multiple_hotels_google_reviews: This is a function that takes a list of 
 import snaggr
 from snaggr import *
 
-options = snaggr.Options()
+options = Options()
 options.binary_location= 'C:/PATH/TO/chromedriver-win64/chrome-win64/chrome.exe'
 options.add_argument('--no-sandbox')  # Disable sandbox mode
 
-service = snaggr.Service(r"C:\PATH\TO\chromedriver-win64\chromedriver.exe")
+service = Service(r"C:\PATH\TO\chromedriver-win64\chromedriver.exe")
 
 
 GILA_RIVER_RESORT_REVIEWS_URL = 'https://www.google.com/travel/search?q=casino%20hotel&ts=CAEaNwoXEhU6E01hcmljb3BhIENvdW50eSwgQVoSHBIUCgcI6A8QBhgMEgcI6A8QBhgNGAEyBAgAEAAqBwoFOgNVU0Q&ictx=3&qs=CAAgACgAMidDaGtJMjRIXzRaeWRnb2pwQVJvTUwyY3ZNV2hqTm5Sb01ITmtFQUU4DUgA&ap=KigKEglp-Lc_bbQ1QBG8MyQ4gwNdwBISCXQhEinzFUZAEbwzJDj7UFvAMAC6AQdyZXZpZXdz'
